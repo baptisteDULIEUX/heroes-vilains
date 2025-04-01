@@ -1,6 +1,11 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import AuthView from '../views/AuthView.vue'
+import OrgListView from '../views/OrgListView.vue'
+import OrgDetailView from '../views/OrgDetailView.vue'
+import TeamListView from '../views/TeamListView.vue'
+import TeamDetailView from '../views/TeamDetailView.vue'
 
 Vue.use(VueRouter)
 
@@ -11,12 +16,31 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/auth',
+    name: 'auth',
+    component: AuthView 
+  },
+  {
+    path: '/organizations',
+    name: 'orgList',
+    component: OrgListView 
+  },
+  {
+    path: '/organizations/:id',
+    name: 'orgDetail',
+    component: OrgDetailView, 
+    props: true 
+  },
+  {
+    path: '/teams',
+    name: 'teamList',
+    component: TeamListView 
+  },
+  {
+    path: '/teams/:id',
+    name: 'teamDetail',
+    component: TeamDetailView, 
+    props: true
   }
 ]
 
