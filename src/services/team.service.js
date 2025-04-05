@@ -1,5 +1,5 @@
 import { getRequest, postRequest, patchRequest } from "./axios.service";
-import LocalSource from "./controller";
+
 
 //=================API CALLS=================
 
@@ -38,23 +38,6 @@ async function removeHeroesFromTeamFromApi(data) {
 }
 
 
-//=================LOCAL CALLS=================
-
-async function getAllTeamsFromLocal(){
-    return LocalSource.getAllTeams()
-}
-
-async function createTeamFromLocal(data){
-    return LocalSource.createTeam(data)
-}
-
-async function addHeroesToTeamFromLocal(data){
-    return LocalSource.addHeroesToTeam(data)
-}
-
-async function removeHeroesFromTeamFromLocal(data){
-    return LocalSource.removeHeroesFromTeam(data)
-}
 
 //=================Controller==================
 

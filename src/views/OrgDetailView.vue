@@ -36,7 +36,7 @@
         <v-card-subtitle>Teams</v-card-subtitle>
         <v-data-table
           :headers="teamHeaders"
-          :items="currentOrg.teams"
+          :items="currentOrg[0].teams"
           item-value="_id"
           class="elevation-1"
         >
@@ -86,13 +86,14 @@
     },
     computed: {
       currentOrg() {
-        console.log(`getter orgDetail: ${this.$store.getters.getCurrentOrg[0]._id}`);
+        console.log(`getter orgDetail: ${this.$store.getters.getCurrentOrg[0]}`);
         return this.$store.getters.getCurrentOrg; // Récupère l'organisation courante depuis le store
       },
       recruitableTeams() {
-        return this.$store.getters.getTeams.filter(
-          (team) => !this.currentOrg.teams.some((orgTeam) => orgTeam._id === team._id)
-        ); // Filtre les équipes qui ne sont pas déjà dans l'organisation
+
+        console.log("teams: " + this.$store.getters.getTeams);
+        return this.$store.getters.getTeams;
+
       },
       teamHeaders() {
         return [
@@ -106,7 +107,7 @@
         try {
           const orgId = this.$store.getters.getCurrentOrg.orgId;
           const orgSecret = this.$store.getters.getOrgPassword;
-          console.log("secret fetchOrg: " + orgSecret);
+          console.log("secret fetchOrg: " + orgId);
           await this.$store.dispatch('fetchOrgById', { orgId, orgSecret }); // Attend la réponse de l'API
           if (!this.currentOrg) {
             this.noOrgDialog = true; // Affiche la boîte de dialogue si l'organisation est introuvable
@@ -114,6 +115,14 @@
         } catch (error) {
           console.error('Error fetching organization:', error);
           this.noOrgDialog = true;
+        }
+      },
+
+      async fetchTeams() {
+        try {
+          await this.$store.dispatch('fetchTeams')
+        } catch (error) {
+          console.error('Error fetching teams:', error);
         }
       },
       goBackToList() {
@@ -144,6 +153,7 @@
       },
     },
     mounted() {
+      this.fetchTeams();
       this.fetchOrganization(); // Récupère les détails de l'organisation lors du montage du composant
     },
   };

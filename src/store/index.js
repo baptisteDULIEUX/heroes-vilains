@@ -1,6 +1,7 @@
 import { getAllOrgs, getOrgById, createOrg } from '@/services/org.service';
 import Vue from 'vue'
 import Vuex from 'vuex'
+import {createTeam, getAllTeams} from "@/services/team.service";
 
 Vue.use(Vuex)
 
@@ -77,7 +78,6 @@ export default new Vuex.Store({
         console.log("orgId (store): " + orgId )
         console.log('secret (store):' + orgSecret)
         const response = await getOrgById(orgId, orgSecret);
-        console.log(response.data.name)
         commit('setCurrentOrg', response.data);
         commit('setOrgPassword', orgSecret); 
       } catch (error) {
@@ -98,7 +98,8 @@ export default new Vuex.Store({
     // Récupère la liste des équipes depuis l'API
     async fetchTeams({ commit }) {
       try {
-        const response = await this.$axios.get('/teams/get'); 
+        const response = await getAllTeams('/teams/get');
+        console.log(response.data)
         commit('setTeams', response.data);  
       } catch (error) {
         console.error('Error fetching teams:', error);
@@ -118,7 +119,7 @@ export default new Vuex.Store({
     // Crée une nouvelle équipe
     async createTeam({ dispatch }, teamData) {
       try {
-        await this.$axios.post('/teams/create', teamData); // Remplacez par votre méthode API
+        await createTeam( teamData); // Remplacez par votre méthode API
         await dispatch('fetchTeams'); // Rafraîchit la liste des équipes
       } catch (error) {
         console.error('Error creating team:', error);
