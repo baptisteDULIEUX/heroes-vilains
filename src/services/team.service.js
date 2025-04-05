@@ -15,15 +15,16 @@ async function createTeamFromApi(data) {
     return postRequest('/teams/create', data, 'createTeam');
 }
 
-async function addHeroesToTeamFromApi(data) {
-    if (!data.idHeroes || !Array.isArray(data.idHeroes) || data.idHeroes.length === 0) {
+async function addHeroesToTeamFromApi({ idHero, idTeam }) {
+    if (!idHero) {
         throw new Error("The 'idHeroes' field must be a non-empty array.");
     }
-    if (!data.idTeam) {
+    if (!idTeam) {
         throw new Error("The 'idTeam' field is required.");
     }
 
-    return patchRequest('/teams/addheroes', data, 'addHeroesToTeam');
+    const uri = "/teams/addheroes?id-team=" + idTeam;
+    return patchRequest(uri, { idHeroes: [idHero] }, 'addHeroesToTeam'); // Envoyer idHero dans un tableau
 }
 
 async function removeHeroesFromTeamFromApi(data) {

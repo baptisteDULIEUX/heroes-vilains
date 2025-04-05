@@ -74,92 +74,100 @@
       </v-card>
     </v-container>
   </template>
-  
-  <script>
-  export default {
-    data() {
-      return {
-        noOrgDialog: false, // Contrôle la boîte de dialogue "No Organization Found"
-        showAddTeam: false, // Contrôle l'affichage de la liste déroulante pour ajouter une équipe
-        selectedTeam: null, // Équipe sélectionnée pour l'ajout
-      };
-    },
-    computed: {
-      currentOrg() {
-        console.log(`getter orgDetail: ${this.$store.getters.getCurrentOrg[0]}`);
-        return this.$store.getters.getCurrentOrg; // Récupère l'organisation courante depuis le store
-      },
-      recruitableTeams() {
-        console.log('teams: ', this.$store.getters.getTeams);
 
-        // Vérifiez si getTeams est défini et contient des données
-        if (this.$store.getters.getTeams) {
-          return this.$store.getters.getTeams.filter(team => team.nbAffiliations == 0);
-        } else {
-          // Retournez un tableau vide si getTeams ou getTeams.data est undefined
-          return [];
-        }
-      },
-      teamHeaders() {
-        return [
-          { text: 'Name', value: 'name' },
-          { text: 'Actions', value: 'actions', sortable: false },
-        ];
-      },
+<script>
+export default {
+  data() {
+    return {
+      noOrgDialog: false,
+      showAddTeam: false,
+      selectedTeam: null,
+      filteredTeams: [], // Variable pour stocker les équipes filtrées
+    };
+  },
+  computed: {
+    currentOrg() {
+      console.log(`getter orgDetail: ${this.$store.getters.getCurrentOrg}`);
+      return this.$store.getters.getCurrentOrg;
     },
-    methods: {
-      async fetchOrganization() {
-        try {
-          const orgId = this.$store.getters.getCurrentOrg.orgId;
-          const orgSecret = this.$store.getters.getOrgPassword;
-          console.log("secret fetchOrg: " + orgId);
-          await this.$store.dispatch('fetchOrgById', { orgId, orgSecret }); // Attend la réponse de l'API
-          if (!this.currentOrg) {
-            this.noOrgDialog = true; // Affiche la boîte de dialogue si l'organisation est introuvable
-          }
-        } catch (error) {
-          console.error('Error fetching organization:', error);
+    recruitableTeams() {
+      console.log('filteredTeams: ', this.filteredTeams);
+      return this.filteredTeams; // Utilise la variable locale
+    },
+    teamHeaders() {
+      return [
+        { text: 'Name', value: 'name' },
+        { text: 'Actions', value: 'actions', sortable: false },
+      ];
+    },
+  },
+  methods: {
+    async fetchOrganization() {
+      try {
+        const orgId = this.$store.getters.getCurrentOrg.orgId;
+        const orgSecret = this.$store.getters.getOrgPassword;
+        console.log('secret fetchOrg: ' + orgId);
+        await this.$store.dispatch('fetchOrgById', { orgId, orgSecret });
+        if (!this.currentOrg) {
           this.noOrgDialog = true;
         }
-      },
-
-      async fetchTeams() {
-        try {
-          await this.$store.dispatch('fetchTeams')
-        } catch (error) {
-          console.error('Error fetching teams:', error);
-        }
-      },
-      goBackToList() {
-        this.$router.push('/organizations'); // Retourne à la liste des organisations
-      },
-      selectTeam(team) {
-        this.$store.dispatch('fetchTeamById', team._id).then(() => {
-          this.$router.push(`/teams/${team._id}`); // Navigue vers la page de détails de l'équipe
-        });
-      },
-      confirmDeleteTeam(team) {
-        if (confirm(`Are you sure you want to delete the team "${team.name}"?`)) {
-          this.$store.dispatch('deleteTeamFromOrg', { orgId: this.currentOrg._id, teamId: team._id });
-        }
-      },
-      toggleAddTeam() {
-        this.showAddTeam = !this.showAddTeam;
-      },
-      addTeam() {
-        this.$store.dispatch('addTeamToOrg', { orgId: this.currentOrg[0]._id, orgSecret: this.$store.getters.getOrgPassword,  teamId: this.selectedTeam }).then(() => {
-          this.selectedTeam = null; // Réinitialise la sélection
-          this.showAddTeam = false; // Cache la liste déroulante
-        });
-      },
-      cancelAddTeam() {
-        this.selectedTeam = null; // Réinitialise la sélection
-        this.showAddTeam = false; // Cache la liste déroulante
-      },
+      } catch (error) {
+        console.error('Error fetching organization:', error);
+        this.noOrgDialog = true;
+      }
     },
-    mounted() {
-      this.fetchTeams();
-      this.fetchOrganization(); // Récupère les détails de l'organisation lors du montage du composant
+    async fetchTeams() {
+      try {
+        await this.$store.dispatch('fetchTeams');
+        // Filtre les équipes et met à jour filteredTeams
+        if (this.$store.getters.getTeams) {
+          this.filteredTeams = this.$store.getters.getTeams.filter(team => team.nbAffiliations == 0);
+        } else {
+          this.filteredTeams = [];
+        }
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+      }
     },
-  };
-  </script>
+    goBackToList() {
+      this.$router.push('/organizations');
+    },
+    selectTeam(team) {
+      console.log('team: ' + team);
+      this.$store.dispatch('selectTeam', team);
+      this.$router.push(`/teams/${team._id}`);
+    },
+    confirmDeleteTeam(team) {
+      if (confirm(`Are you sure you want to delete the team "${team.name}"?`)) {
+        this.$store.dispatch('deleteTeamFromOrg', {
+          orgId: this.currentOrg[0]._id,
+          orgSecret: this.$store.getters.getOrgPassword,
+          teamId: team._id,
+        });
+      }
+    },
+    toggleAddTeam() {
+      this.showAddTeam = !this.showAddTeam;
+    },
+    addTeam() {
+      this.$store.dispatch('addTeamToOrg', {
+        orgId: this.currentOrg[0]._id,
+        orgSecret: this.$store.getters.getOrgPassword,
+        teamId: this.selectedTeam,
+      }).then(() => {
+        this.selectedTeam = null;
+        this.showAddTeam = false;
+        this.fetchTeams(); // Met à jour les équipes après l'ajout
+      });
+    },
+    cancelAddTeam() {
+      this.selectedTeam = null;
+      this.showAddTeam = false;
+    },
+  },
+  mounted() {
+    this.fetchTeams(); // Appel initial de fetchTeams
+    this.fetchOrganization();
+  },
+};
+</script>

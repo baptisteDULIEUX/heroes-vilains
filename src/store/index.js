@@ -1,7 +1,9 @@
-import {getAllOrgs, getOrgById, createOrg, addTeamToOrg} from '@/services/org.service';
+import {getAllOrgs, getOrgById, createOrg, addTeamToOrg, removeTeamFromOrg} from '@/services/org.service';
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {createTeam, getAllTeams} from "@/services/team.service";
+import {createTeam, getAllTeams, addHeroesToTeam} from "@/services/team.service";
+import { getAllHeroes, getHeroById } from '@/services/hero.service'; // Importation de addHeroToTeam
+
 
 Vue.use(Vuex)
 
@@ -106,16 +108,6 @@ export default new Vuex.Store({
       }
     },
 
-    // Récupère les détails d'une équipe spécifique
-    async fetchTeamById({ commit }, teamId) {
-      try {
-        const response = await this.$axios.get(`/teams/getbyid/${teamId}`); // Remplacez par votre méthode API
-        commit('setCurrentTeam', response.data); // Met à jour l'équipe sélectionnée
-      } catch (error) {
-        console.error('Error fetching team details:', error);
-      }
-    },
-
     // Crée une nouvelle équipe
     async createTeam({ dispatch }, teamData) {
       try {
@@ -133,6 +125,54 @@ export default new Vuex.Store({
         dispatch('fetchOrgById', {orgId: orgId, orgSecret: orgSecret});
       } catch (error) {
         console.error('Error adding team to org:', error);
+      }
+    },
+
+    async deleteTeamFromOrg({ dispatch }, { orgId ,orgSecret, teamId }) {
+      try {
+        console.log("deleteTeamFromOrg : " + orgId + " " + orgSecret + " " + teamId)
+        await removeTeamFromOrg(teamId,orgSecret);
+        dispatch('fetchOrgById', {orgId: orgId, orgSecret: orgSecret});
+      } catch (error) {
+        console.error('Error deleting team from org:', error);
+      }
+    },
+
+    async selectTeam({ commit }, team) {
+      commit('setCurrentTeam', team);
+    },
+
+    async fetchHeroes({ commit }) {
+      try {
+        const response = await getAllHeroes();
+        commit('setHeroAliases', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching heroes:', error);
+        return [];
+      }
+    },
+
+    async fetchHeroById({ commit, state }, heroId) {
+      try {
+        const orgSecret = state.orgPassword;
+        console.log("orgSecret (store): " + orgSecret)
+        const response = await getHeroById(heroId, orgSecret);
+        commit('setCurrentHero', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching hero details:', error);
+        return [];
+      }
+    },
+
+    async addHeroToTeam({ commit }, { teamId, heroId }) {
+      try {
+        console.log("addHeroToTeam (store): " + teamId + " " + heroId)
+        const response = await addHeroesToTeam({idHeroes: heroId, idTeam: teamId});
+        commit('setHeroAliases', response.data);
+      } catch (error) {
+        console.error('Error adding hero to team:', error);
       }
     }
   },

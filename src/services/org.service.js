@@ -29,15 +29,14 @@ async function addTeamToOrgFromApi(idTeam, orgSecret) {
     return patchRequest(uri, data, 'addTeamToOrg'); // Envoie data dans le corps de la requête
 }
 
-async function removeTeamFromOrgFromApi(data, orgSecret) {
-    if (!data.idTeam) {
+async function removeTeamFromOrgFromApi(idTeam, orgSecret) {
+    if (!idTeam) {
         throw new Error("The 'idTeam' field is required.");
     }
 
-    const headers = orgSecret ? { 'org-secret': orgSecret } : {};
-    const queryString = orgSecret ? `?org-secret=${orgSecret}` : '';
+    const uri = `/orgs/removeteam?org-secret=${orgSecret}`
 
-    return patchRequest(`/orgs/removeteam${queryString}`, data, 'removeTeamFromOrg', headers);
+    return patchRequest(uri, { idTeam: idTeam }, 'removeTeamFromOrg');
 }
 
 async function getOrgByIdFromApi(id, orgSecret) {
@@ -68,8 +67,8 @@ async function addTeamToOrg(idTeam, orgSecret) {
     return answer;
 }
 
-async function removeTeamFromOrg(data) {
-    let answer = await removeTeamFromOrgFromApi(data);
+async function removeTeamFromOrg(idTeam, orgSecret) {
+    let answer = await removeTeamFromOrgFromApi(idTeam, orgSecret);
     return answer;
 }
 

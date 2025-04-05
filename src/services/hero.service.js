@@ -1,5 +1,4 @@
 import {getRequest, postRequest, putRequest} from '@/services/axios.service'
-import LocalSource from '@/services/controller'
 
 //=================API CALLS=================
 
@@ -50,31 +49,15 @@ async function getHeroByIdFromApi(id, orgSecret) {
     if (!id) {
         throw new Error("id is a required parameter.");
     }
+    if (!orgSecret) {
+        throw new Error("orgSecret is a required parameter.");
+    }
 
-    const headers = orgSecret ? { 'org-secret': orgSecret } : {};
-    const queryString = orgSecret ? `?org-secret=${orgSecret}` : '';
+    const uri = `/heroes/getbyid/${id}?org-secret=${orgSecret}`;
 
-    return getRequest(`/heroes/getbyid/${id}${queryString}`, 'getHeroById', headers);
+    return getRequest(uri, {}, 'getHeroById');
 }
 
-
-//=================LOCAL CALLS=================
-
-async function getAllHeroesFromLocal(){
-    return LocalSource.getAllHeroes()
-}
-
-async function createHeroFromLocal(data){
-    return LocalSource.createHero(data)
-}
-
-async function updateHeroFromLocal(data){
-    return LocalSource.updateHero(data)
-}
-
-async function getHeroByIdFromLocal(id){
-    return LocalSource.getHeroById(id)
-}
 
 //=================CONTROLLER=================
 
@@ -93,8 +76,8 @@ async function updateHero(data){
     return answer;
 }
 
-async function getHeroById(id){
-    let answer = await getHeroByIdFromApi(id)
+async function getHeroById(id, orgSecret){
+    let answer = await getHeroByIdFromApi(id, orgSecret)
     return answer;
 }
 
