@@ -1,4 +1,4 @@
-import { getAllOrgs, getOrgById, createOrg } from '@/services/org.service';
+import {getAllOrgs, getOrgById, createOrg, addTeamToOrg} from '@/services/org.service';
 import Vue from 'vue'
 import Vuex from 'vuex'
 import {createTeam, getAllTeams} from "@/services/team.service";
@@ -8,12 +8,12 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     orgPassword: "nous sommes mechants",
-    heroAliases: [], 
-    currentHero: null, 
+    heroAliases: [],
+    currentHero: null,
     teams: [],
-    currentTeam: null, 
-    orgNames: [], 
-    currentOrg: null 
+    currentTeam: null,
+    orgNames: [],
+    currentOrg: null
   },
   getters: {
     getOrgPassword: state => state.orgPassword,
@@ -65,13 +65,13 @@ export default new Vuex.Store({
     async fetchOrgNames({ commit }) {
       try {
         console.log('fetchOrgNames')
-        const response = await getAllOrgs(); 
+        const response = await getAllOrgs();
         commit('setOrgNames', response.data);
       } catch (error) {
         console.error('Error fetching organizations:', error);
       }
     },
-  
+
     // Récupère les détails d'une organisation spécifique
     async fetchOrgById({ commit }, {orgId, orgSecret}) {
       try {
@@ -79,33 +79,33 @@ export default new Vuex.Store({
         console.log('secret (store):' + orgSecret)
         const response = await getOrgById(orgId, orgSecret);
         commit('setCurrentOrg', response.data);
-        commit('setOrgPassword', orgSecret); 
+        commit('setOrgPassword', orgSecret);
       } catch (error) {
         console.error('Error fetching organization details:', error);
       }
     },
-  
+
     // Crée une nouvelle organisation
     async createOrg({ dispatch }, orgData) {
       try {
-        await createOrg(orgData); 
+        await createOrg(orgData);
         await dispatch('fetchOrgNames');
       } catch (error) {
         console.error('Error creating organization:', error);
       }
     },
-  
+
     // Récupère la liste des équipes depuis l'API
     async fetchTeams({ commit }) {
       try {
-        const response = await getAllTeams('/teams/get');
+        const response = await getAllTeams();
         console.log(response.data)
-        commit('setTeams', response.data);  
+        commit('setTeams', response.data);
       } catch (error) {
         console.error('Error fetching teams:', error);
       }
     },
-  
+
     // Récupère les détails d'une équipe spécifique
     async fetchTeamById({ commit }, teamId) {
       try {
@@ -115,7 +115,7 @@ export default new Vuex.Store({
         console.error('Error fetching team details:', error);
       }
     },
-  
+
     // Crée une nouvelle équipe
     async createTeam({ dispatch }, teamData) {
       try {
@@ -125,6 +125,16 @@ export default new Vuex.Store({
         console.error('Error creating team:', error);
       }
     },
+
+    async addTeamToOrg({ dispatch }, { orgId ,orgSecret, teamId }) {
+      try{
+        console.log("addTeamToOrg : " + orgId + " " + orgSecret + " " + teamId)
+        await addTeamToOrg(teamId,orgSecret);
+        dispatch('fetchOrgById', {orgId: orgId, orgSecret: orgSecret});
+      } catch (error) {
+        console.error('Error adding team to org:', error);
+      }
+    }
   },
   modules: {
   }

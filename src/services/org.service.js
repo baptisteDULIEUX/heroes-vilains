@@ -17,15 +17,16 @@ async function createOrgFromApi(data) {
     return postRequest('/orgs/create', data, 'createOrg');
 }
 
-async function addTeamToOrgFromApi(data, orgSecret) {
-    if (!data.idTeam) {
+async function addTeamToOrgFromApi(idTeam, orgSecret) {
+    if (!idTeam) {
         throw new Error("The 'idTeam' field is required.");
     }
 
-    const headers = orgSecret ? { 'org-secret': orgSecret } : {};
-    const queryString = orgSecret ? `?org-secret=${orgSecret}` : '';
+    const uri = `/orgs/addteam?org-secret=${orgSecret}`; // URI sans idTeam
 
-    return patchRequest(`/orgs/addteam${queryString}`, data, 'addTeamToOrg', headers);
+    const data = { idTeam: idTeam }; // idTeam dans le corps de la requête
+
+    return patchRequest(uri, data, 'addTeamToOrg'); // Envoie data dans le corps de la requête
 }
 
 async function removeTeamFromOrgFromApi(data, orgSecret) {
@@ -62,8 +63,8 @@ async function createOrg(data) {
     return answer;
 }
 
-async function addTeamToOrg(data) {
-    let answer = await addTeamToOrgFromApi(data);
+async function addTeamToOrg(idTeam, orgSecret) {
+    let answer = await addTeamToOrgFromApi(idTeam, orgSecret);
     return answer;
 }
 

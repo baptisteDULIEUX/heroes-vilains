@@ -90,10 +90,15 @@
         return this.$store.getters.getCurrentOrg; // Récupère l'organisation courante depuis le store
       },
       recruitableTeams() {
+        console.log('teams: ', this.$store.getters.getTeams);
 
-        console.log("teams: " + this.$store.getters.getTeams);
-        return this.$store.getters.getTeams;
-
+        // Vérifiez si getTeams est défini et contient des données
+        if (this.$store.getters.getTeams) {
+          return this.$store.getters.getTeams.filter(team => team.nbAffiliations == 0);
+        } else {
+          // Retournez un tableau vide si getTeams ou getTeams.data est undefined
+          return [];
+        }
       },
       teamHeaders() {
         return [
@@ -142,7 +147,7 @@
         this.showAddTeam = !this.showAddTeam;
       },
       addTeam() {
-        this.$store.dispatch('addTeamToOrg', { orgId: this.currentOrg._id, teamId: this.selectedTeam }).then(() => {
+        this.$store.dispatch('addTeamToOrg', { orgId: this.currentOrg[0]._id, orgSecret: this.$store.getters.getOrgPassword,  teamId: this.selectedTeam }).then(() => {
           this.selectedTeam = null; // Réinitialise la sélection
           this.showAddTeam = false; // Cache la liste déroulante
         });
