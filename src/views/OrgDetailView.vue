@@ -19,20 +19,14 @@
       <!-- Affichage des détails de l'organisation -->
       <v-card v-if="currentOrg" class="pa-4">
         <v-card-title>
-          <span class="text-h5">Organization: {{ currentOrg.name }}</span>
+          <span class="text-h5">Organization: {{ currentOrg[0].name }}</span>
         </v-card-title>
         <v-card-text>
           <v-list dense>
             <v-list-item>
               <v-list-item-content>
                 <v-list-item-title>ID:</v-list-item-title>
-                <v-list-item-subtitle>{{ currentOrg._id }}</v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-            <v-list-item>
-              <v-list-item-content>
-                <v-list-item-title>Description:</v-list-item-title>
-                <v-list-item-subtitle>{{ currentOrg.description || 'No description available' }}</v-list-item-subtitle>
+                <v-list-item-subtitle>{{ currentOrg[0]._id}}</v-list-item-subtitle>
               </v-list-item-content>
             </v-list-item>
           </v-list>
@@ -92,6 +86,7 @@
     },
     computed: {
       currentOrg() {
+        console.log(`getter orgDetail: ${this.$store.getters.getCurrentOrg[0]._id}`);
         return this.$store.getters.getCurrentOrg; // Récupère l'organisation courante depuis le store
       },
       recruitableTeams() {
@@ -109,9 +104,10 @@
     methods: {
       async fetchOrganization() {
         try {
-          const orgId = this.$route.params.id;
-          const secret = this.$store.getters.getOrgPassWord;
-          await this.$store.dispatch('fetchOrgById', { orgId, secret }); // Attend la réponse de l'API
+          const orgId = this.$store.getters.getCurrentOrg.orgId;
+          const orgSecret = this.$store.getters.getOrgPassword;
+          console.log("secret fetchOrg: " + orgSecret);
+          await this.$store.dispatch('fetchOrgById', { orgId, orgSecret }); // Attend la réponse de l'API
           if (!this.currentOrg) {
             this.noOrgDialog = true; // Affiche la boîte de dialogue si l'organisation est introuvable
           }

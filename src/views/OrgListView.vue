@@ -107,8 +107,10 @@ export default {
     async selectOrganization(org) {
       try {
         const secret = this.$store.getters.getOrgPassword; // Récupère la phrase secrète de l'organisation
-        console.log('Secret:', secret);
+        console.log("org id: " + org._id + " secret: " + secret);
         await this.$store.dispatch('fetchOrgById', {orgId: org._id,orgSecret: secret}); // Récupère les détails de l'organisation sélectionnée
+        await this.$store.dispatch('selectOrganization', { orgId: org._id, secret })
+        console.log("current org: " + this.$store.getters.getCurrentOrg )
         this.$router.push(`/organizations/${org._id}`); // Navigue vers la page de détails de l'organisation
       } catch (error) {
         console.error('Error fetching organization details:', error);

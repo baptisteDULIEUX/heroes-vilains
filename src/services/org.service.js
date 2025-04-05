@@ -74,6 +74,7 @@ async function removeTeamFromOrg(data) {
 
 async function getOrgById(id, orgSecret) {
     let answer = await getOrgByIdFromApi(id, orgSecret);
+    console.log("request" + JSON.stringify(answer));
     return answer;
 }
 

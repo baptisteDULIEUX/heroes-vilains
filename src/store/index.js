@@ -6,7 +6,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    orgPassword: null,
+    orgPassword: "nous sommes mechants",
     heroAliases: [], 
     currentHero: null, 
     teams: [],
@@ -56,12 +56,16 @@ export default new Vuex.Store({
       commit('setOrgPassword', secret);
     },
 
+    async selectOrganization({commit}, org) {
+      commit('setCurrentOrg', org);
+    },
+
     // Récupère la liste des organisations depuis l'API
     async fetchOrgNames({ commit }) {
       try {
         console.log('fetchOrgNames')
         const response = await getAllOrgs(); 
-        commit('setOrgNames', response.data); 
+        commit('setOrgNames', response.data);
       } catch (error) {
         console.error('Error fetching organizations:', error);
       }
@@ -70,8 +74,10 @@ export default new Vuex.Store({
     // Récupère les détails d'une organisation spécifique
     async fetchOrgById({ commit }, {orgId, orgSecret}) {
       try {
-        console.log('secret :' + orgSecret)
-        const response = await getOrgById(orgId, orgSecret); 
+        console.log("orgId (store): " + orgId )
+        console.log('secret (store):' + orgSecret)
+        const response = await getOrgById(orgId, orgSecret);
+        console.log(response.data.name)
         commit('setCurrentOrg', response.data);
         commit('setOrgPassword', orgSecret); 
       } catch (error) {
