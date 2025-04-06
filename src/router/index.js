@@ -6,6 +6,8 @@ import OrgListView from '../views/OrgListView.vue'
 import OrgDetailView from '../views/OrgDetailView.vue'
 import TeamListView from '../views/TeamListView.vue'
 import TeamDetailView from '../views/TeamDetailView.vue'
+import HeroDetailView from "@/views/HeroDetailView.vue";
+import HeroListView from "@/views/HeroListView.vue";
 
 Vue.use(VueRouter)
 
@@ -40,6 +42,17 @@ const routes = [
     path: '/teams/:id',
     name: 'teamDetail',
     component: TeamDetailView, 
+    props: true
+  },
+  {
+    path: '/heroes',
+    name: 'heroes',
+    component: HeroListView
+  },
+  {
+    path: '/heroes/:id',
+    name: 'hero-detail',
+    component: HeroDetailView,
     props: true
   }
 ]
