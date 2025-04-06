@@ -37,7 +37,7 @@
   export default {
     computed: {
       currentOrg() {
-        return this.$store.getters.getCurrentOrg; // Récupère l'organisation courante depuis le store
+        return this.$store.getters.getCurrentOrg;
       },
     },
   };

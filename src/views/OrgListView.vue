@@ -24,10 +24,8 @@
       </v-card-text>
     </v-card>
 
-    <!-- Composant pour saisir la phrase secrète -->
     <PhraseSecrete @success="handleSecretSuccess" @error="handleSecretError" />
 
-    <!-- Dialog for creating a new organization -->
     <v-dialog v-model="dialog" max-width="500px">
       <v-card>
         <v-card-title>
@@ -83,7 +81,7 @@ export default {
     ...mapGetters('secret', ['getOrgPassword']),
 
     orgNames() {
-      return this.getOrgNames; // Utilise maintenant le getter du module app
+      return this.getOrgNames;
     },
   },
   methods: {
@@ -103,24 +101,20 @@ export default {
         return;
       }
       try {
-        await this.createOrg(this.newOrg); // Action du module app
+        await this.createOrg(this.newOrg);
         this.closeDialog();
-        await this.fetchOrgNames(); // Action du module app
+        await this.fetchOrgNames();
       } catch (error) {
         console.error('Error creating organization:', error);
-        // Vous pourriez utiliser le module error ici :
-        // this.$store.dispatch('errors/addError', error.message);
       }
     },
     selectOrganization(org) {
-      // Utilisez toujours router.push avec catch
       this.$router.push({
-        name: 'orgDetail', // Nom de la route défini dans le routeur
+        name: 'orgDetail',
         params: {
-          id: org._id // Assurez-vous que c'est bien _id et pas id
+          id: org._id
         }
       }).catch(err => {
-        // Ignore les erreurs de navigation dupliquée
         if (!err.message.includes('Avoided redundant navigation')) {
           console.error('Navigation error:', err)
         }
@@ -134,7 +128,7 @@ export default {
     },
   },
   async mounted() {
-    await this.fetchOrgNames(); // Action du module app
+    await this.fetchOrgNames();
   },
 };
 </script>

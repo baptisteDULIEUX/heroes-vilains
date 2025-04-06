@@ -24,26 +24,26 @@ const routes = [
     path: '/organizations',
     name: 'Organizations',
     component: Organizations,
-    beforeEnter: authGuard, // Appliquer la garde de routage
-    meta: { requiresAuth: true }, // Indiquer que la route nécessite une authentification
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true },
   },
   {
     path: '/teams',
     name: 'Teams',
     component: Teams,
-    beforeEnter: authGuard, // Appliquer la garde de routage
-    meta: { requiresAuth: true }, // Indiquer que la route nécessite une authentification
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true },
   },
   {
     path: '/teams/:id',
     name: 'TeamDetail',
     component: TeamDetailView,
-    beforeEnter: authGuard, // Appliquer la garde de routage
-    meta: { requiresAuth: true }, // Indiquer que la route nécessite une authentification
+    beforeEnter: authGuard,
+    meta: { requiresAuth: true },
   },
   {
     path: '*',
-    redirect: '/', // Rediriger vers la page d'accueil pour les routes non définies
+    redirect: '/',
   },
 ];
 

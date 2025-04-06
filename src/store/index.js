@@ -4,6 +4,7 @@ import app from './modules/app.module'
 import errors from './modules/error.module'
 import secret from './modules/secret.module'
 import heroes from './modules/heroes.module'
+import auth from './modules/auth.module'
 
 Vue.use(Vuex)
 
@@ -12,6 +13,8 @@ export default new Vuex.Store({
     app,
     errors,
     secret,
-    heroes
-  }
+    heroes,
+    auth,
+  },
+
 })

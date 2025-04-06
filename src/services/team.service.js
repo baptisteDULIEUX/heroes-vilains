@@ -24,8 +24,8 @@ async function addHeroesToTeamFromApi({ idHero, idTeam }) {
         throw new Error("The 'idTeam' field is required.");
     }
 
-    const uri = "/teams/addheroes"; // Supprimer les paramètres de requête de l'URI
-    const data = { idHeroes: [idHero], idTeam: idTeam }; // Construire l'objet de données correct
+    const uri = "/teams/addheroes";
+    const data = { idHeroes: [idHero], idTeam: idTeam };
 
     return patchRequest(uri, data, 'addHeroesToTeam');
 }
@@ -65,9 +65,9 @@ async function addHeroesToTeam({idHero, idTeam}){
     return answer;
 }
 
-async function removeHeroesFromTeam(data) { // Modifier le paramètre en data
+async function removeHeroesFromTeam(data) {
     try {
-        const response = await removeHeroesFromTeamFromApi(data.heroId, data.teamId); // Utiliser data.heroId et data.teamId
+        const response = await removeHeroesFromTeamFromApi(data.heroId, data.teamId);
         return response.data;
     } catch (error) {
         console.error('Error removing hero from team:', error);

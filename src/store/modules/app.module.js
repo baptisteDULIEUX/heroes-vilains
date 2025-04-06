@@ -40,7 +40,7 @@ export default {
         async selectTeam({ commit, getters }, teamOrId) {
             if (!teamOrId) {
                 console.error('Invalid teamOrId: undefined');
-                return; // ou throw new Error('Invalid teamOrId');
+                return;
             }
 
             let teamId;
@@ -52,7 +52,7 @@ export default {
                 console.log('Selecting team with ID (string):', teamId);
             } else {
                 console.error('Invalid teamOrId:', teamOrId);
-                return; // ou throw new Error('Invalid teamOrId');
+                return;
             }
 
             let team = getters.getTeamById(teamId);

@@ -68,18 +68,15 @@ export default {
   },
   computed: {
     teams() {
-      // Assurez-vous que le getter correspond à votre store Vuex
       return this.$store.getters['app/getTeams'];
     },
   },
   methods: {
     async fetchTeams() {
       try {
-        // Assurez-vous que l'action correspond à votre store Vuex
         await this.$store.dispatch('app/fetchTeams');
       } catch (error) {
         console.error(error);
-        // Affichez un message d'erreur à l'utilisateur
         this.$store.commit('app/setError', 'Erreur lors de la récupération des équipes.');
       } finally {
         this.loading = false;
@@ -97,13 +94,11 @@ export default {
 
     async createTeam() {
       try{
-        // Assurez-vous que l'action correspond à votre store Vuex
         await this.$store.dispatch('app/createTeam', this.newTeam);
         this.closeCreateTeamDialog();
         await this.fetchTeams();
       } catch (error) {
         console.error(error);
-        // Affichez un message d'erreur à l'utilisateur
         this.$store.commit('app/setError', 'Erreur lors de la création de l\'équipe.');
       }
     }

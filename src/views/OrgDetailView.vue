@@ -1,6 +1,5 @@
 <template>
     <v-container>
-      <!-- Boîte de dialogue pour signaler qu'il n'y a rien à afficher -->
       <v-dialog v-model="noOrgDialog" max-width="500px">
         <v-card>
           <v-card-title>
@@ -16,7 +15,6 @@
         </v-card>
       </v-dialog>
 
-      <!-- Affichage des détails de l'organisation -->
       <v-card v-if="currentOrg" class="pa-4">
         <v-card-title>
           <span class="text-h5">Organization: {{ currentOrg[0].name }}</span>
@@ -31,8 +29,6 @@
             </v-list-item>
           </v-list>
         </v-card-text>
-
-        <!-- Liste des équipes -->
         <v-card-subtitle>Teams</v-card-subtitle>
         <v-data-table
           :headers="teamHeaders"
@@ -51,12 +47,10 @@
           </template>
         </v-data-table>
 
-        <!-- Bouton pour ajouter une équipe -->
         <v-card-actions>
           <v-btn color="primary" @click="toggleAddTeam">Add Team</v-btn>
         </v-card-actions>
 
-        <!-- Liste déroulante pour ajouter une équipe -->
         <v-card v-if="showAddTeam" class="pa-4">
           <v-select
             v-model="selectedTeam"
@@ -103,7 +97,6 @@ export default {
     }
   },
   watch: {
-    // Réagit aux changements d'ID dans l'URL
     '$route.params.id': {
       immediate: true,
       handler(newId) {
@@ -152,10 +145,8 @@ export default {
 
     async selectTeam(team) {
       try {
-        // Sauvegarde dans le store
         await this.$store.dispatch('app/selectTeam', team);
 
-        // Navigation
         if (this.$route.params.id !== team._id) {
           await this.$router.push(`/teams/${team._id}`);
         }

@@ -26,8 +26,7 @@ export default {
         const response = await AuthService.login(this.login, this.password);
         console.log('UserLogin successful:', response);
         localStorage.setItem('xsrfToken', response.data.xsrfToken);
-        // Gérer le rafraîchissement du JWT si nécessaire
-        this.$router.push('/'); // Rediriger vers la page d'accueil
+        this.$router.push('/');
       } catch (error) {
         console.error('UserLogin failed:', error);
         this.error = error.response.data.data;

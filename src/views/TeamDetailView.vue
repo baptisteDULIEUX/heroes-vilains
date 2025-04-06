@@ -148,13 +148,11 @@ export default {
       if (this.currentOrg && this.currentOrg[0] && this.currentOrg[0].teams && this.currentTeam && this.currentTeam._id) {
         const team = this.currentOrg[0].teams.find(team => team._id === this.currentTeam._id);
         if (team && team.members) {
-          // Récupérer les informations de chaque héros
           for (const heroId of team.members) {
             try {
-              // Utiliser l'action Vuex 'heroes/fetchHeroById' pour récupérer les détails du héros
               const hero = await this.$store.dispatch('heroes/fetchHeroById', heroId);
               if (hero) {
-                heroInfoList.push(hero); // Stocker directement l'objet héros
+                heroInfoList.push(hero);
               } else {
                 console.error(`Héros avec l'ID ${heroId} non trouvé.`);
               }
@@ -170,7 +168,7 @@ export default {
       }
 
       console.log("heroInfo list: ", heroInfoList);
-      this.teamHeroes = heroInfoList; // Stocker directement les objets héros dans teamHeroes
+      this.teamHeroes = heroInfoList;
       return heroInfoList;
     },
 
@@ -234,7 +232,7 @@ export default {
               this.showAddMemberDialog = false;
               this.selectedHero = null;
               this.availableHeroesData.push(newHero);
-              this.getHeroedIdFromOrg(); // Mettre à jour la liste des héros
+              this.getHeroedIdFromOrg();
             })
             .catch(error => {
               console.error('Error adding hero to team:', error);
@@ -249,7 +247,7 @@ export default {
               }
               this.showAddMemberDialog = false;
               this.selectedHero = null;
-              this.getHeroedIdFromOrg(); // Mettre à jour la liste des héros
+              this.getHeroedIdFromOrg();
             })
             .catch(error => {
               console.error('Error adding hero to team:', error);
@@ -265,7 +263,7 @@ export default {
           .then(() => {
             this.availableHeroesData = this.availableHeroesData.filter(hero => hero._id !== heroId);
             this.teamHeroes = this.teamHeroes.filter(hero => hero._id !== heroId);
-            this.getHeroedIdFromOrg(); // Recharger la liste des héros
+            this.getHeroedIdFromOrg();
           })
           .catch(error => {
             console.error('Error deleting hero:', error);

@@ -31,9 +31,9 @@ export default {
             }
         },
 
-        async fetchHeroById({ commit, rootGetters }, heroId) { // Ajout de rootGetters
+        async fetchHeroById({ commit, rootGetters }, heroId) {
             try {
-                const orgSecret = rootGetters['secret/getOrgPassword']; // Utilisation de rootGetters
+                const orgSecret = rootGetters['secret/getOrgPassword'];
                 const response = await getHeroById(heroId, orgSecret);
                 commit('setCurrentHero', response.data);
                 return response.data;

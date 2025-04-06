@@ -19,7 +19,7 @@
   export default {
     data() {
       return {
-        secretPhrase: '', // Phrase secrète saisie par l'utilisateur
+        secretPhrase: '',
       };
     },
     methods: {

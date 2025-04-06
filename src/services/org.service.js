@@ -22,11 +22,11 @@ async function addTeamToOrgFromApi(idTeam, orgSecret) {
         throw new Error("The 'idTeam' field is required.");
     }
 
-    const uri = `/orgs/addteam?org-secret=${orgSecret}`; // URI sans idTeam
+    const uri = `/orgs/addteam?org-secret=${orgSecret}`;
 
-    const data = { idTeam: idTeam }; // idTeam dans le corps de la requête
+    const data = { idTeam: idTeam };
 
-    return patchRequest(uri, data, 'addTeamToOrg'); // Envoie data dans le corps de la requête
+    return patchRequest(uri, data, 'addTeamToOrg');
 }
 
 async function removeTeamFromOrgFromApi(idTeam, orgSecret) {
@@ -41,7 +41,7 @@ async function removeTeamFromOrgFromApi(idTeam, orgSecret) {
 
 async function getOrgByIdFromApi(id, orgSecret) {
     if (!id || !orgSecret) {
-      console.error('Missing parameters:', { id, orgSecret }); // Debug
+      console.error('Missing parameters:', { id, orgSecret });
       throw new Error("The 'id' parameter is required.");
     } 
     const uri = `/orgs/getbyid/${id}?org-secret=${orgSecret}`;
