@@ -2,7 +2,7 @@ import {getAllOrgs, getOrgById, createOrg, addTeamToOrg, removeTeamFromOrg} from
 import Vue from 'vue'
 import Vuex from 'vuex'
 import {createTeam, getAllTeams, addHeroesToTeam} from "@/services/team.service";
-import { getAllHeroes, getHeroById } from '@/services/hero.service'; // Importation de addHeroToTeam
+import {createHero, getAllHeroes, getHeroById} from '@/services/hero.service';
 
 
 Vue.use(Vuex)
@@ -176,6 +176,18 @@ export default new Vuex.Store({
       }
     }
   },
+  async createHero({ dispatch }, heroData) {
+    try {
+      const response = await createHero(heroData);
+      console.log("Héro créé:", response.data);
+      await dispatch('fetchHeroes');
+      return response.data;
+    } catch (error) {
+      console.error('Error creating hero:', error);
+      throw error;
+    }
+  },
+
   modules: {
   }
 })
