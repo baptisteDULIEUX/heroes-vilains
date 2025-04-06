@@ -59,6 +59,7 @@
 
 <script>
 import PhraseSecrete from '@/components/PhraseSecrete.vue';
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   components: {
@@ -70,7 +71,7 @@ export default {
         { text: 'Name', value: 'name' },
         { text: 'ID', value: '_id' },
       ],
-      dialog: false, // Contrôle la visibilité de la boîte de dialogue
+      dialog: false,
       newOrg: {
         name: '',
         secret: '',
@@ -78,18 +79,23 @@ export default {
     };
   },
   computed: {
+    ...mapGetters('app', ['getOrgNames', 'getCurrentOrg']),
+    ...mapGetters('secret', ['getOrgPassword']),
+
     orgNames() {
-      return this.$store.getters.getOrgNames; // Récupère la liste des organisations depuis le store
+      return this.getOrgNames; // Utilise maintenant le getter du module app
     },
   },
   methods: {
+    ...mapActions('app', ['fetchOrgNames', 'createOrg', 'fetchOrgById', 'selectOrganization']),
+    ...mapActions('secret', ['updateOrgPassword']),
+
     openDialog() {
       this.dialog = true;
     },
     closeDialog() {
       this.dialog = false;
-      this.newOrg.name = '';
-      this.newOrg.secret = '';
+      this.newOrg = { name: '', secret: '' };
     },
     async createOrganization() {
       if (!this.newOrg.name || !this.newOrg.secret) {
@@ -97,34 +103,38 @@ export default {
         return;
       }
       try {
-        await this.$store.dispatch('createOrg', this.newOrg); // Crée une nouvelle organisation via le store
+        await this.createOrg(this.newOrg); // Action du module app
         this.closeDialog();
-        await this.$store.dispatch('fetchOrgNames'); // Rafraîchit la liste des organisations
+        await this.fetchOrgNames(); // Action du module app
       } catch (error) {
         console.error('Error creating organization:', error);
+        // Vous pourriez utiliser le module error ici :
+        // this.$store.dispatch('errors/addError', error.message);
       }
     },
-    async selectOrganization(org) {
-      try {
-        const secret = this.$store.getters.getOrgPassword; // Récupère la phrase secrète de l'organisation
-        console.log("org id: " + org._id + " secret: " + secret);
-        await this.$store.dispatch('fetchOrgById', {orgId: org._id,orgSecret: secret}); // Récupère les détails de l'organisation sélectionnée
-        await this.$store.dispatch('selectOrganization', { orgId: org._id, secret })
-        console.log("current org: " + this.$store.getters.getCurrentOrg )
-        this.$router.push(`/organizations/${org._id}`); // Navigue vers la page de détails de l'organisation
-      } catch (error) {
-        console.error('Error fetching organization details:', error);
-      }
+    selectOrganization(org) {
+      // Utilisez toujours router.push avec catch
+      this.$router.push({
+        name: 'orgDetail', // Nom de la route défini dans le routeur
+        params: {
+          id: org._id // Assurez-vous que c'est bien _id et pas id
+        }
+      }).catch(err => {
+        // Ignore les erreurs de navigation dupliquée
+        if (!err.message.includes('Avoided redundant navigation')) {
+          console.error('Navigation error:', err)
+        }
+      })
     },
     handleSecretSuccess(message) {
-      console.log(message); // Affiche un message de succès
+      console.log(message);
     },
     handleSecretError(message) {
-      console.error(message); // Affiche un message d'erreur
+      console.error(message);
     },
   },
-  mounted() {
-    this.$store.dispatch('fetchOrgNames'); // Récupère la liste des organisations lors du montage du composant
+  async mounted() {
+    await this.fetchOrgNames(); // Action du module app
   },
 };
 </script>

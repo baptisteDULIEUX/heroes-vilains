@@ -1,53 +1,56 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import AuthView from '../views/AuthView.vue'
-import OrgListView from '../views/OrgListView.vue'
-import OrgDetailView from '../views/OrgDetailView.vue'
-import TeamListView from '../views/TeamListView.vue'
-import TeamDetailView from '../views/TeamDetailView.vue'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+import Home from '../views/HomeView.vue';
+import Auth from '../views/AuthView.vue';
+import Organizations from '../views/OrgListView.vue';
+import Teams from '../views/TeamListView.vue';
+import TeamDetailView from '../views/TeamDetailView.vue';
+import authGuard from './auth-guard';
 
-Vue.use(VueRouter)
+Vue.use(VueRouter);
 
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeView
+    name: 'Home',
+    component: Home,
   },
   {
     path: '/auth',
-    name: 'auth',
-    component: AuthView 
+    name: 'Auth',
+    component: Auth,
   },
   {
     path: '/organizations',
-    name: 'orgList',
-    component: OrgListView 
-  },
-  {
-    path: '/organizations/:id',
-    name: 'orgDetail',
-    component: OrgDetailView, 
-    props: true 
+    name: 'Organizations',
+    component: Organizations,
+    beforeEnter: authGuard, // Appliquer la garde de routage
+    meta: { requiresAuth: true }, // Indiquer que la route nécessite une authentification
   },
   {
     path: '/teams',
-    name: 'teamList',
-    component: TeamListView 
+    name: 'Teams',
+    component: Teams,
+    beforeEnter: authGuard, // Appliquer la garde de routage
+    meta: { requiresAuth: true }, // Indiquer que la route nécessite une authentification
   },
   {
     path: '/teams/:id',
-    name: 'teamDetail',
-    component: TeamDetailView, 
-    props: true
-  }
-]
+    name: 'TeamDetail',
+    component: TeamDetailView,
+    beforeEnter: authGuard, // Appliquer la garde de routage
+    meta: { requiresAuth: true }, // Indiquer que la route nécessite une authentification
+  },
+  {
+    path: '*',
+    redirect: '/', // Rediriger vers la page d'accueil pour les routes non définies
+  },
+];
 
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
-  routes
-})
+  routes,
+});
 
-export default router
+export default router;

@@ -49,21 +49,38 @@
     <v-main>
       <router-view />
     </v-main>
+    <error-dialog ref="errorDialog" />
   </v-app>
 </template>
 
 <script>
+import ErrorDialog from '@/components/ErrorDialog.vue';
+
+
 export default {
   data() {
     return {
       drawer: false, 
     };
   },
+  components: {
+    ErrorDialog,
+  },
   methods: {
     authenticate() {
       this.$router.push('/auth'); 
     },
+
+    showError(message) {
+      this.$refs.ErrorDialog.show(message);
+    },
   },
+
+  provide: {
+    showError: function() {
+      return this.showError;
+    },
+  }
 };
 </script>
 

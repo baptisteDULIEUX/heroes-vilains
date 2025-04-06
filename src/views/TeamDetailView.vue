@@ -12,9 +12,9 @@
         <v-data-table :headers="memberHeaders" :items="currentTeamWithHeroes.members" item-key="_id">
           <template v-slot:item="{ item }">
             <tr>
-              <td>{{ item.publicName }}</td>
-              <td>{{ item.realName }}</td>
-              <td>{{ item.powers }}</td>
+              <td>{{ item[0].publicName }}</td>
+              <td>{{ item[0].realName }}</td>
+              <td>{{ item[0].powers ? item[0].powers.map(power => power.name).join(', ') : 'Aucun pouvoir' }}</td>
               <td>
                 <v-btn color="primary" small @click="editMember(item)">Edit</v-btn>
                 <v-btn color="red" small @click="deleteMember(item)">Delete</v-btn>
@@ -54,12 +54,12 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
   </v-container>
 </template>
 
 <script>
 import { v4 as uuidv4 } from 'uuid';
+import Cookies from 'js-cookie';
 
 export default {
   data() {
@@ -74,8 +74,8 @@ export default {
   },
   computed: {
     currentTeam() {
-      const team = this.$store.getters.getCurrentTeam;
-      console.log('getter currentTeam:', team);
+      const team = this.$store.getters['app/getCurrentTeam'];
+      console.log('Current team:', team);
       return team;
     },
     memberHeaders() {
@@ -87,7 +87,6 @@ export default {
       ];
     },
     availableHeroes() {
-      console.log('availableHeroes: ', this.availableHeroesData);
       return this.availableHeroesData;
     },
     currentTeamWithHeroes() {
@@ -99,11 +98,85 @@ export default {
         members: this.teamHeroes,
       };
     },
+    currentOrg() {
+      const currentOrg = this.$store.getters['app/getCurrentOrg'];
+      console.log("currentOrg:", currentOrg);
+      return currentOrg;
+    },
   },
   methods: {
+    saveState() {
+      console.log('Saving state:', this.currentOrg, this.currentTeam);
+
+      if (this.currentOrg) {
+        Cookies.set('currentOrg', JSON.stringify(this.currentOrg));
+      } else {
+        console.warn('currentOrg is null, not saving.');
+      }
+
+      if (this.currentTeam) {
+        Cookies.set('currentTeam', JSON.stringify(this.currentTeam));
+      } else {
+        console.warn('currentTeam is null, not saving.');
+      }
+    },
+
+    loadState() {
+      try {
+        const savedOrg = Cookies.get('currentOrg');
+        const savedTeam = Cookies.get('currentTeam');
+
+        console.log('Loading state:', savedOrg, savedTeam);
+
+        if (savedOrg) {
+          this.currentOrg = JSON.parse(savedOrg);
+        }
+        if (savedTeam) {
+          this.currentTeam = JSON.parse(savedTeam);
+        }
+
+        console.log('Loaded state:', this.currentOrg, this.currentTeam);
+      } catch (error) {
+        console.error('Error loading state:', error);
+      }
+    },
+
+
+    async getHeroedIdFromOrg() {
+      let heroInfoList = [];
+
+      if (this.currentOrg && this.currentOrg[0] && this.currentOrg[0].teams && this.currentTeam && this.currentTeam._id) {
+        const team = this.currentOrg[0].teams.find(team => team._id === this.currentTeam._id);
+        if (team && team.members) {
+          // Récupérer les informations de chaque héros
+          for (const heroId of team.members) {
+            try {
+              // Utiliser l'action Vuex 'heroes/fetchHeroById' pour récupérer les détails du héros
+              const hero = await this.$store.dispatch('heroes/fetchHeroById', heroId);
+              if (hero) {
+                heroInfoList.push(hero); // Stocker directement l'objet héros
+              } else {
+                console.error(`Héros avec l'ID ${heroId} non trouvé.`);
+              }
+            } catch (error) {
+              console.error(`Erreur lors de la récupération du héros avec l'ID ${heroId}:`, error);
+            }
+          }
+        } else {
+          console.error("Équipe non trouvée ou membres non définis.");
+        }
+      } else {
+        console.error("currentOrg, currentTeam ou une de leurs propriétés est undefined ou null.");
+      }
+
+      console.log("heroInfo list: ", heroInfoList);
+      this.teamHeroes = heroInfoList; // Stocker directement les objets héros dans teamHeroes
+      return heroInfoList;
+    },
+
     async fetchHeroes() {
       try {
-        const heroes = await this.$store.dispatch('fetchHeroes');
+        const heroes = await this.$store.dispatch('heroes/fetchHeroes');
         this.availableHeroesData = heroes;
       } catch (error) {
         console.error('Error fetching heroes:', error);
@@ -121,7 +194,7 @@ export default {
         const heroes = await Promise.all(
             heroIds.map(async heroId => {
               try {
-                const hero = await this.$store.dispatch('fetchHeroById', heroId);
+                const hero = await this.$store.dispatch('heroes/fetchHeroById', heroId);
                 if (Array.isArray(hero) && hero.length > 0) {
                   const heroData = hero[0];
                   const powers = heroData.powers.map(power => power.name).join(', ');
@@ -156,26 +229,27 @@ export default {
           alias: this.newMember.alias,
           powers: [this.newMember.power],
         };
-        this.$store.dispatch('addHeroToTeam', { teamId, heroId })
+        this.$store.dispatch('heroes/addHeroToTeam', { teamId, heroId })
             .then(() => {
               this.showAddMemberDialog = false;
               this.selectedHero = null;
               this.availableHeroesData.push(newHero);
-              this.fetchTeamHeroes();
+              this.getHeroedIdFromOrg(); // Mettre à jour la liste des héros
             })
             .catch(error => {
               console.error('Error adding hero to team:', error);
             });
       } else if (this.addMemberType === 'existing') {
-        this.$store.dispatch('addHeroToTeam', { teamId, heroId })
+        this.$store.dispatch('heroes/addHeroToTeam', { teamId, heroId })
             .then(() => {
               const existingHero = this.availableHeroesData.find(hero => hero._id === heroId);
               if (existingHero) {
-                this.availableHeroesData.push(existingHero); // Ajouter l'objet complet du héros
+                console.log('Hero found:', existingHero);
+                this.availableHeroesData.push(existingHero);
               }
               this.showAddMemberDialog = false;
               this.selectedHero = null;
-              this.fetchTeamHeroes();
+              this.getHeroedIdFromOrg(); // Mettre à jour la liste des héros
             })
             .catch(error => {
               console.error('Error adding hero to team:', error);
@@ -185,13 +259,13 @@ export default {
 
     deleteMember(item) {
       const teamId = this.currentTeam._id;
-      const heroId = item._id;
+      const heroId = item[0]._id;
 
-      this.$store.dispatch('removeHeroFromTeam', { teamId, heroId })
+      this.$store.dispatch('heroes/removeHeroFromTeam', { teamId, heroId })
           .then(() => {
             this.availableHeroesData = this.availableHeroesData.filter(hero => hero._id !== heroId);
             this.teamHeroes = this.teamHeroes.filter(hero => hero._id !== heroId);
-            this.fetchTeamHeroes();
+            this.getHeroedIdFromOrg(); // Recharger la liste des héros
           })
           .catch(error => {
             console.error('Error deleting hero:', error);
@@ -199,8 +273,20 @@ export default {
     },
   },
   mounted() {
-    this.fetchHeroes();
-    this.fetchTeamHeroes();
+    this.loadState();
+    this.getHeroedIdFromOrg();
+    console.log('Route params teamId:', this.$route.params.id);
+    if (this.$route.params.id) {
+      this.$store.dispatch('app/selectTeam', this.$route.params.id);
+      this.fetchHeroes();
+      this.fetchTeamHeroes();
+    } else {
+      console.error('Team ID is undefined.');
+    }
+  },
+  watch: {
+    currentOrg: 'saveState',
+    currentTeam: 'saveState',
   },
 };
 </script>

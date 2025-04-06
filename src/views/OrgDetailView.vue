@@ -15,7 +15,7 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-  
+
       <!-- Affichage des détails de l'organisation -->
       <v-card v-if="currentOrg" class="pa-4">
         <v-card-title>
@@ -31,7 +31,7 @@
             </v-list-item>
           </v-list>
         </v-card-text>
-  
+
         <!-- Liste des équipes -->
         <v-card-subtitle>Teams</v-card-subtitle>
         <v-data-table
@@ -44,18 +44,18 @@
             <tr v-for="team in items" :key="team._id">
               <td>{{ team.name }}</td>
               <td>
-                <v-btn color="primary" small @click="selectTeam(team)">Select</v-btn>
-                <v-btn color="red" small @click="confirmDeleteTeam(team)">Delete</v-btn>
+                <v-btn color="primary" small @click.stop="selectTeam(team)">Select</v-btn>
+                <v-btn color="red" small @click.stop="confirmDeleteTeam(team)">Delete</v-btn>
               </td>
             </tr>
           </template>
         </v-data-table>
-  
+
         <!-- Bouton pour ajouter une équipe -->
         <v-card-actions>
           <v-btn color="primary" @click="toggleAddTeam">Add Team</v-btn>
         </v-card-actions>
-  
+
         <!-- Liste déroulante pour ajouter une équipe -->
         <v-card v-if="showAddTeam" class="pa-4">
           <v-select
@@ -76,98 +76,142 @@
   </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
+
 export default {
   data() {
     return {
       noOrgDialog: false,
       showAddTeam: false,
       selectedTeam: null,
-      filteredTeams: [], // Variable pour stocker les équipes filtrées
-    };
+      filteredTeams: [],
+      teamHeaders: [
+        { text: 'Name', value: 'name' },
+        { text: 'Actions', value: 'actions', sortable: false }
+      ]
+    }
   },
   computed: {
+    ...mapGetters('app', ['getCurrentOrg', 'getTeams']),
+    ...mapGetters('secret', ['getOrgPassword']),
+
     currentOrg() {
-      console.log(`getter orgDetail: ${this.$store.getters.getCurrentOrg}`);
-      return this.$store.getters.getCurrentOrg;
+      return this.getCurrentOrg
     },
     recruitableTeams() {
-      console.log('filteredTeams: ', this.filteredTeams);
-      return this.filteredTeams; // Utilise la variable locale
-    },
-    teamHeaders() {
-      return [
-        { text: 'Name', value: 'name' },
-        { text: 'Actions', value: 'actions', sortable: false },
-      ];
-    },
+      return this.filteredTeams
+    }
+  },
+  watch: {
+    // Réagit aux changements d'ID dans l'URL
+    '$route.params.id': {
+      immediate: true,
+      handler(newId) {
+        if (newId) {
+          this.loadOrganizationData()
+        }
+      }
+    }
   },
   methods: {
-    async fetchOrganization() {
+    ...mapActions('app', ['fetchOrgById', 'fetchTeams', 'selectTeam']),
+    ...mapActions('secret', ['addTeamToOrg', 'deleteTeamFromOrg']),
+
+    async loadOrganizationData() {
       try {
-        const orgId = this.$store.getters.getCurrentOrg.orgId;
-        const orgSecret = this.$store.getters.getOrgPassword;
-        console.log('secret fetchOrg: ' + orgId);
-        await this.$store.dispatch('fetchOrgById', { orgId, orgSecret });
+        const orgId = this.$route.params.id
+        const orgSecret = this.getOrgPassword
+
+        if (!orgId || !orgSecret) {
+          throw new Error('Missing required parameters')
+        }
+
+        await this.fetchOrgById({ orgId, orgSecret })
+
         if (!this.currentOrg) {
-          this.noOrgDialog = true;
+          this.noOrgDialog = true
         }
+
+        await this.fetchTeams()
+        this.filterTeams()
       } catch (error) {
-        console.error('Error fetching organization:', error);
-        this.noOrgDialog = true;
+        console.error('Error loading organization:', error)
+        this.noOrgDialog = true
       }
     },
-    async fetchTeams() {
-      try {
-        await this.$store.dispatch('fetchTeams');
-        // Filtre les équipes et met à jour filteredTeams
-        if (this.$store.getters.getTeams) {
-          this.filteredTeams = this.$store.getters.getTeams.filter(team => team.nbAffiliations == 0);
-        } else {
-          this.filteredTeams = [];
-        }
-      } catch (error) {
-        console.error('Error fetching teams:', error);
-      }
+
+    filterTeams() {
+      this.filteredTeams = this.getTeams
+          ? this.getTeams.filter(team => team.nbAffiliations === 0)
+          : []
     },
+
     goBackToList() {
-      this.$router.push('/organizations');
+      this.$router.push('/organizations')
     },
-    selectTeam(team) {
-      console.log('team: ' + team);
-      this.$store.dispatch('selectTeam', team);
-      this.$router.push(`/teams/${team._id}`);
-    },
-    confirmDeleteTeam(team) {
-      if (confirm(`Are you sure you want to delete the team "${team.name}"?`)) {
-        this.$store.dispatch('deleteTeamFromOrg', {
-          orgId: this.currentOrg[0]._id,
-          orgSecret: this.$store.getters.getOrgPassword,
-          teamId: team._id,
-        });
+
+    async selectTeam(team) {
+      try {
+        // Sauvegarde dans le store
+        await this.$store.dispatch('app/selectTeam', team);
+
+        // Navigation
+        if (this.$route.params.id !== team._id) {
+          await this.$router.push(`/teams/${team._id}`);
+        }
+      } catch (error) {
+        console.error('Failed to select team:', error);
+        this.$store.dispatch('errors/setError', 'Cette équipe n\'existe pas');
       }
     },
+
+    async confirmDeleteTeam(team) {
+      if (confirm(`Delete team "${team.name}"?`)) {
+        try {
+          await this.deleteTeamFromOrg({
+            orgId: this.currentOrg._id,
+            orgSecret: this.getOrgPassword,
+            teamId: team._id
+          })
+          await this.fetchTeams()
+          this.filterTeams()
+        } catch (error) {
+          console.error('Delete failed:', error)
+        }
+      }
+    },
+
     toggleAddTeam() {
-      this.showAddTeam = !this.showAddTeam;
+      this.showAddTeam = !this.showAddTeam
+      if (this.showAddTeam) {
+        this.filterTeams()
+      }
     },
-    addTeam() {
-      this.$store.dispatch('addTeamToOrg', {
-        orgId: this.currentOrg[0]._id,
-        orgSecret: this.$store.getters.getOrgPassword,
-        teamId: this.selectedTeam,
-      }).then(() => {
-        this.selectedTeam = null;
-        this.showAddTeam = false;
-        this.fetchTeams(); // Met à jour les équipes après l'ajout
-      });
+
+    async addTeam() {
+      try {
+        await this.addTeamToOrg({
+          orgId: this.currentOrg._id,
+          orgSecret: this.getOrgPassword,
+          teamId: this.selectedTeam
+        })
+
+        this.selectedTeam = null
+        this.showAddTeam = false
+        await this.fetchTeams()
+        this.filterTeams()
+      } catch (error) {
+        console.error('Add team failed:', error)
+      }
     },
+
     cancelAddTeam() {
-      this.selectedTeam = null;
-      this.showAddTeam = false;
-    },
+      this.selectedTeam = null
+      this.showAddTeam = false
+    }
   },
-  mounted() {
-    this.fetchTeams(); // Appel initial de fetchTeams
-    this.fetchOrganization();
-  },
-};
+  async created() {
+    await this.loadOrganizationData()
+  }
+}
 </script>
