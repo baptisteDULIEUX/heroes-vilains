@@ -17,25 +17,33 @@ async function createTeamFromApi(data) {
 
 async function addHeroesToTeamFromApi({ idHero, idTeam }) {
     if (!idHero) {
+        console.log("idHero (request):", idHero);
         throw new Error("The 'idHeroes' field must be a non-empty array.");
     }
     if (!idTeam) {
         throw new Error("The 'idTeam' field is required.");
     }
 
-    const uri = "/teams/addheroes?id-team=" + idTeam;
-    return patchRequest(uri, { idHeroes: [idHero] }, 'addHeroesToTeam'); // Envoyer idHero dans un tableau
+    const uri = "/teams/addheroes"; // Supprimer les paramètres de requête de l'URI
+    const data = { idHeroes: [idHero], idTeam: idTeam }; // Construire l'objet de données correct
+
+    return patchRequest(uri, data, 'addHeroesToTeam');
 }
 
-async function removeHeroesFromTeamFromApi(data) {
-    if (!data.idHeroes || !Array.isArray(data.idHeroes) || data.idHeroes.length === 0) {
+async function removeHeroesFromTeamFromApi(heroId, teamId) {
+    if (!heroId) {
+        console.log("heroId (request):", heroId);
         throw new Error("The 'idHeroes' field must be a non-empty array.");
     }
-    if (!data.idTeam) {
+    if (!teamId) {
+        console.log("teamId (request):", teamId);
         throw new Error("The 'idTeam' field is required.");
     }
 
-    return patchRequest('/teams/removeheroes', data, 'removeHeroesFromTeam');
+    const uri = "/teams/removeheroes";
+    const data = { idHeroes: [heroId], idTeam: teamId };
+
+    return patchRequest(uri, data, 'removeHeroesFromTeam');
 }
 
 
@@ -52,14 +60,19 @@ async function createTeam(data){
     return answer;
 }
 
-async function addHeroesToTeam(data){
-    let answer = await addHeroesToTeamFromApi(data)
+async function addHeroesToTeam({idHero, idTeam}){
+    let answer = await addHeroesToTeamFromApi({ idHero, idTeam})
     return answer;
 }
 
-async function removeHeroesFromTeam(data){
-    let answer = await removeHeroesFromTeamFromApi(data)
-    return answer;
+async function removeHeroesFromTeam(data) { // Modifier le paramètre en data
+    try {
+        const response = await removeHeroesFromTeamFromApi(data.heroId, data.teamId); // Utiliser data.heroId et data.teamId
+        return response.data;
+    } catch (error) {
+        console.error('Error removing hero from team:', error);
+        throw error;
+    }
 }
 
 

@@ -1,7 +1,7 @@
 import {getAllOrgs, getOrgById, createOrg, addTeamToOrg, removeTeamFromOrg} from '@/services/org.service';
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {createTeam, getAllTeams, addHeroesToTeam} from "@/services/team.service";
+import {createTeam, getAllTeams, addHeroesToTeam, removeHeroesFromTeam} from "@/services/team.service";
 import { getAllHeroes, getHeroById } from '@/services/hero.service'; // Importation de addHeroToTeam
 
 
@@ -169,10 +169,20 @@ export default new Vuex.Store({
     async addHeroToTeam({ commit }, { teamId, heroId }) {
       try {
         console.log("addHeroToTeam (store): " + teamId + " " + heroId)
-        const response = await addHeroesToTeam({idHeroes: heroId, idTeam: teamId});
-        commit('setHeroAliases', response.data);
+        const response = await addHeroesToTeam({idHero: heroId, idTeam: teamId});
+        commit('setHeroAliases', response);
       } catch (error) {
         console.error('Error adding hero to team:', error);
+      }
+    },
+
+    async removeHeroFromTeam({ commit }, { teamId, heroId }) {
+      try {
+        console.log("removeHeroFromTeam (store): " + teamId + " " + heroId)
+        const response = await removeHeroesFromTeam({heroId: heroId, teamId: teamId});
+        commit('setHeroAliases', response);
+      } catch (error) {
+        console.error('Error removing hero from team:', error);
       }
     }
   },
